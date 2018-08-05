@@ -1,0 +1,41 @@
+package alexandre.com.br.movies.domain;
+
+
+import com.path.android.jobqueue.Job;
+import com.path.android.jobqueue.Params;
+
+public abstract class BaseUseCase extends Job {
+
+    public static final int HIGH_PRIORITY = 1;
+    public static final int RETRY_LIMIT = 0;
+    public static final String INTERNET_ERROR = "Problem with Internet connection.";
+
+    protected BaseUseCaseCallback callback;
+    protected String errorReason;
+
+    public BaseUseCase(BaseUseCaseCallback callback) {
+        super(new Params(HIGH_PRIORITY));
+        this.callback = callback;
+    }
+
+    @Override
+    public void onAdded() {/*EMPTY FOR NOW*/}
+
+    @Override
+    protected void onCancel() {
+        callback.onError(errorReason);
+    }
+
+    @Override
+    protected int getRetryLimit() {
+        return RETRY_LIMIT;
+    }
+
+    @Override
+    protected boolean shouldReRunOnThrowable(Throwable throwable) {
+        throwable.printStackTrace();
+        errorReason = throwable.getMessage();
+        onCancel();
+        return false;
+    }
+}
